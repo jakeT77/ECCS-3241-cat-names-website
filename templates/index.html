@@ -1,0 +1,55 @@
+<!-- /templates/index.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cat Naming Website</title>
+
+    <!-- CSS Link -->
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+
+<body>
+
+    <div id="card">
+
+        <h1>Name Your Cat!</h1>
+
+        <div class="drop-area">
+            <input type="file" id="imageInput" accept="image/*" style="display: none;">
+            <div id="preview">
+                <p>Drag and drop image here to upload</p>
+            </div>
+        </div>
+
+        <div class="row">
+            <input type="radio" name="radio" id="radio-m" />
+            <label for="radio-m"></label>
+            <span id="selection"></span>
+            <input type="radio" name="radio" id="radio-f" />
+            <label for="radio-f"></label>
+        </div>
+
+        <button class="button" onclick="generate()">
+            <span> Generate a Name! </span>
+            <div class="button__horizontal"></div>
+            <div class="button__vertical"></div>
+        </button>
+
+
+
+    </div>
+
+    <div id="overlay">
+        <div id="output">
+            <span>Muffin Tray</span>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+</body>
+
+</html>
