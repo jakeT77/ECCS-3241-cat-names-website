@@ -95,11 +95,9 @@ document.addEventListener('DOMContentLoaded', function () {
             const img = document.createElement('img');
             img.src = event.target.result;
             img.alt = file.name;
+            img.id = 'img'
             previewContainer.innerHTML = '';
             previewContainer.appendChild(img);
-
-            document.getElementById("text").remove
-            alert('a')
         };
 
         reader.readAsDataURL(file);
@@ -109,6 +107,45 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // generator code: 
 function generate() {
-    document.getElementById('overlay').style.fontSize = '150px'
-    document.getElementById('overlay').style.height = '100%'
+    const img = document.getElementById('img')
+
+    sendImageDataToServer(img);
+
+    // document.getElementById('overlay').style.fontSize = '150px'
+    // document.getElementById('overlay').style.height = '100%'
+}
+
+// image upload helper
+function sendImageDataToServer(imgElement) {
+    const blob = getImageData(imgElement);
+
+    fetch('/process-image', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/octet-stream',
+        },
+        body: blob,
+    })
+        .then(response => response.text())
+        .then(data => {
+            console.log('Response received:', data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+}
+
+function getImageData(imgElement) {
+    const base64String = imgElement.getAttribute('src');
+
+    // Create a new Blob object from the base64 string
+    const byteCharacters = atob(base64String);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: 'image/jpeg' });
+
+    return blob;
 }
