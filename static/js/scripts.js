@@ -98,6 +98,8 @@ document.addEventListener('DOMContentLoaded', function () {
             img.id = 'img'
             previewContainer.innerHTML = '';
             previewContainer.appendChild(img);
+
+            upload(img);
         };
 
         reader.readAsDataURL(file);
@@ -107,45 +109,36 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // generator code: 
 function generate() {
-    const img = document.getElementById('img')
 
-    sendImageDataToServer(img);
+    fetch('/generate')
 
     // document.getElementById('overlay').style.fontSize = '150px'
     // document.getElementById('overlay').style.height = '100%'
 }
 
 // image upload helper
-function sendImageDataToServer(imgElement) {
-    const blob = getImageData(imgElement);
+function upload() {
+    const imgElement = document.getElementById('img');
+    const imgSrc = imgElement.src;
 
-    fetch('/process-image', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/octet-stream',
-        },
-        body: blob,
-    })
-        .then(response => response.text())
-        .then(data => {
-            console.log('Response received:', data);
+    // Check if the src is in base64 format
+    if (imgSrc.startsWith('data:image/jpeg;base64,')) {
+        // Remove the prefix so you only send the base64 string
+        const base64Data = imgSrc.replace('data:image/jpeg;base64,', '');
+
+        // Send the base64 data to the Flask server
+        fetch('/upload', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ image_data: base64Data })
         })
-        .catch(error => {
-            console.error('Error:', error);
-        });
-}
-
-function getImageData(imgElement) {
-    const base64String = imgElement.getAttribute('src');
-
-    // Create a new Blob object from the base64 string
-    const byteCharacters = atob(base64String);
-    const byteNumbers = new Array(byteCharacters.length);
-    for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
+            .then(response => response.json())
+            .then(data => console.log(data))
+            .catch(error => console.error('Error:', error));
+    } else {
+        console.error('The image source is not in Base64 format.');
     }
-    const byteArray = new Uint8Array(byteNumbers);
-    const blob = new Blob([byteArray], { type: 'image/jpeg' });
-
-    return blob;
 }
+
