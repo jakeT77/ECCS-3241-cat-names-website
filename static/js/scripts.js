@@ -110,10 +110,23 @@ document.addEventListener('DOMContentLoaded', function () {
 // generator code: 
 function generate() {
 
-    fetch('/generate')
+    const selection = document.querySelector('[name="radio"]:checked').id.split('-')[1];
 
-    // document.getElementById('overlay').style.fontSize = '150px'
-    // document.getElementById('overlay').style.height = '100%'
+    fetch('/generate', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ car_gender: selection })
+    })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('car_name').innerText = data
+            document.getElementById('overlay').style.fontSize = '150px'
+            document.getElementById('overlay').style.height = '100%'
+        })
+
+
 }
 
 // image upload helper

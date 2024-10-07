@@ -4,6 +4,7 @@ from flask import Flask, render_template, request, jsonify
 from datetime import datetime
 import tensorflow as tf                      # pip install tensorflow-cpu
 from PIL import Image
+import pandas as pd
 import numpy as np
 import base64
 import io
@@ -16,7 +17,7 @@ app = Flask( __name__ )
 
 model = tf.keras.models.load_model('./static/model/car_classifier.keras')
 class_names = ['Abyssinian', 'American Bobtail', 'American Curl', 'American Shorthair', 'Bengal', 'Birman', 'Bombay', 'British Shorthair', 'Egyptian Mau', 'Exotic Shorthair', 'Maine Coon', 'Manx', 'Norwegian Forest', 'Persian', 'Ragdoll', 'Russian Blue', 'Scottish Fold', 'Siamese', 'Sphynx', 'Turkish Angora']
-
+names_df = pd.read_csv('./static/model/car_names.csv')
 image_path = './static/testing/upload.jpeg'
 
 # ====================== #
@@ -29,9 +30,10 @@ def index():
     server_log( 'index', 'Rendering Main index.html' )
     return render_template( 'index.html' )
 
-@app.route('/generate')
+@app.route('/generate', methods=['POST'])
 def generate():
 
+    # process image
     img = tf.keras.utils.load_img(image_path, target_size=(180, 180))
     img_array = tf.keras.utils.img_to_array(img)
     img_array = tf.expand_dims(img_array, 0)
@@ -39,9 +41,21 @@ def generate():
     predictions = model.predict(img_array)
     score = tf.nn.softmax(predictions[0])
     
-    server_log( 'upload', f"{class_names[np.argmax(score)]}: {100 * np.max(score):.2f}%" )
+    server_log( 'generate', f"{class_names[np.argmax(score)]}: {100 * np.max(score):.2f}%" )
     
-    return f"{class_names[np.argmax(score)]}: {100 * np.max(score):.2f}%"
+    # read in cat gender
+    data = request.get_json()
+    make = data['car_gender']
+    
+    server_log( 'generate', f"Car make: {make}" )
+    
+    # select name
+    name_index = np.random.randint( 1, 4 ) + ( 0 if make == 'm' else 3 )
+    name = names_df.iloc[np.argmax(score), name_index]
+    
+    server_log( 'generate', f"Car name[{name_index}]: {name}" )
+    
+    return jsonify( name )
 
 @app.route('/upload', methods=['POST'])
 def upload():
@@ -79,4 +93,4 @@ def server_log( source, message ):
 
 if __name__ == '__main__':
     
-    app.run( debug=True )
+    app.run(debug=True)
